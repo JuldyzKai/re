@@ -1,1 +1,774 @@
-# re
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Имантай тесті</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #0f4c75, #3282b8, #bbe1fa);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            background-color: rgba(255, 255, 255, 0.97);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            padding: 30px;
+            max-width: 900px;
+            width: 100%;
+            position: relative;
+            z-index: 10;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #1b262c;
+            font-size: 36px;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .question {
+            margin-bottom: 25px;
+            padding: 25px;
+            border-radius: 15px;
+            background-color: #f8f9fa;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+            border-left: 5px solid #3282b8;
+        }
+        
+        .question:hover {
+            transform: translateY(-5px);
+        }
+        
+        .question-text {
+            font-size: 26px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #1b262c;
+            line-height: 1.4;
+        }
+        
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .option {
+            padding: 18px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 22px;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+        }
+        
+        .option:hover {
+            background-color: #e9ecef;
+            transform: scale(1.02);
+        }
+        
+        .correct {
+            background-color: #d4edda;
+            border-color: #28a745;
+            box-shadow: 0 0 15px rgba(40, 167, 69, 0.5);
+            animation: pulse 0.5s;
+        }
+        
+        .incorrect {
+            background-color: #f8d7da;
+            border-color: #dc3545;
+        }
+        
+        .result {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 26px;
+            font-weight: bold;
+        }
+        
+        .score {
+            font-size: 32px;
+            color: #1b262c;
+            margin: 20px 0;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+        
+        .restart-btn {
+            background: linear-gradient(to right, #3282b8, #0f4c75);
+            color: white;
+            border: none;
+            padding: 18px 35px;
+            font-size: 22px;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        .restart-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+        }
+        
+        .firework {
+            position: fixed;
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 5;
+        }
+        
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            pointer-events: none;
+            z-index: 5;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .progress-bar {
+            height: 10px;
+            background-color: #e9ecef;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        
+        .progress {
+            height: 100%;
+            background: linear-gradient(to right, #3282b8, #0f4c75);
+            width: 0%;
+            transition: width 0.5s;
+        }
+        
+        .question-number {
+            text-align: center;
+            font-size: 20px;
+            color: #6c757d;
+            margin-bottom: 10px;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 28px;
+            }
+            
+            .question-text {
+                font-size: 22px;
+            }
+            
+            .option {
+                font-size: 18px;
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Имантай тесті</h1>
+        
+        <div class="question-number" id="question-number">1/30 сұрақ</div>
+        <div class="progress-bar">
+            <div class="progress" id="progress"></div>
+        </div>
+        
+        <div id="question-container">
+            <!-- Сұрақтар осы жерде көрсетіледі -->
+        </div>
+        
+        <div class="result">
+            <div class="score" id="score">0/30</div>
+            <button class="restart-btn" id="restart-btn">Қайта бастау</button>
+        </div>
+    </div>
+
+    <script>
+        // Тест сұрақтары
+        const questions = [
+            {
+                question: "Имантайдың түсіне кірген ақбоз атты әулие не айтады?",
+                options: [
+                    "Ел билейсің",
+                    "Байлыққа кенелесің",
+                    "Үш бала көресің",
+                    "Қиыншылық күтеді"
+                ],
+                correct: 2
+            },
+            {
+                question: "Қаныштың азан аты өзгеріп, 'Қаныш' атануының себебі:",
+                options: [
+                    "Көрші қойған",
+                    "Дін өкілінің кеңесі",
+                    "Имантайдың арманы",
+                    "Анасының еркелетуінен"
+                ],
+                correct: 2
+            },
+            {
+                question: "Имантайдың өміріндегі ең үлкен өкініші не?",
+                options: [
+                    "Байлығының аздығы",
+                    "Елмен дауласуы",
+                    "Баласыздық",
+                    "Ауруы"
+                ],
+                correct: 2
+            },
+            {
+                question: "Имантайдың екінші әйелі Әлима кімнің қызы болған?",
+                options: [
+                    "Шорман бидің қызы",
+                    "Мұса мырзаның қызы",
+                    "Сәтбайдың жиені",
+                    "Иса қажының қызы"
+                ],
+                correct: 3
+            },
+            {
+                question: "Әлима қандай мінезімен ауылға сүйкімді болған?",
+                options: [
+                    "Ашуланшақ",
+                    "Кекшіл",
+                    "Өнерлі",
+                    "Инабатты, сабырлы"
+                ],
+                correct: 3
+            },
+            {
+                question: "Қаныштың әпкесі Қазиза кімге атастырылған?",
+                options: [
+                    "Әбсәләмге",
+                    "Зейноллаға",
+                    "Әужанның ұлына",
+                    "Бөкешке"
+                ],
+                correct: 2
+            },
+            {
+                question: "Имантайдың ағаларының бірі кім?",
+                options: [
+                    "Қасен",
+                    "Бөкеш",
+                    "Нұрлан",
+                    "Әмін"
+                ],
+                correct: 3
+            },
+            {
+                question: "Қаныштың бала кезінде ерекше әдеті не болған?",
+                options: [
+                    "Домбыра тарту",
+                    "Құс баптау",
+                    "Атқа шабу",
+                    "Тас жинау"
+                ],
+                correct: 3
+            },
+            {
+                question: "Қаныштың бала кезінде ұстап жүрген иті қалай аталған?",
+                options: [
+                    "Тұйғын",
+                    "Құтпан",
+                    "Алыпсоқ",
+                    "Бөрі"
+                ],
+                correct: 1
+            },
+            {
+                question: "Қаныштың табиғатқа қызығушылығы неден байқалады?",
+                options: [
+                    "Ән айтуынан",
+                    "Тастарды жинауынан",
+                    "Құс баптауынан",
+                    "Аң аулауынан"
+                ],
+                correct: 1
+            },
+            {
+                question: "Имантай би кіммен бірге білім алған?",
+                options: [
+                    "Әлкей Марғұланмен",
+                    "Мәшһүр Жүсіппен",
+                    "Потанинмен",
+                    "Шоқан Уәлихановпен"
+                ],
+                correct: 3
+            },
+            {
+                question: "Имантайдың ұстазы Әбдірахим молда қай қалада сабақ берген?",
+                options: [
+                    "Павлодарда",
+                    "Омбыда",
+                    "Қазанда",
+                    "Семейде"
+                ],
+                correct: 1
+            },
+            {
+                question: "Имантай Омбыдан неше жыл оқып келген?",
+                options: [
+                    "2 жыл",
+                    "3 жыл",
+                    "1 жыл",
+                    "5 жыл"
+                ],
+                correct: 1
+            },
+            {
+                question: "Шоқан Уәлиханов туралы Имантай не дейді?",
+                options: [
+                    "Ол тым жас қайтты",
+                    "Көп сөйлейтін еді",
+                    "Шоқан аз оқыса да көп тоқыған",
+                    "Оның жолын жалғау керек"
+                ],
+                correct: 2
+            },
+            {
+                question: "Имантайдың жинаған ескі жазбаларына не болған?",
+                options: [
+                    "НКВД тәркілеген",
+                    "Балаларына берілген",
+                    "Отқа жағылған",
+                    "Архивке өткізілген"
+                ],
+                correct: 2
+            },
+            {
+                question: "Сәтбай қажы Меккеге барған кезде қай жылы қайтыс болған?",
+                options: [
+                    "1910",
+                    "1903",
+                    "1901",
+                    "1905"
+                ],
+                correct: 1
+            },
+            {
+                question: "Қаныштың әкесінің қасиеті неде еді?",
+                options: [
+                    "Қолөнерші",
+                    "Әділ би, қанағатшыл",
+                    "Байлық қуған",
+                    "Әнші"
+                ],
+                correct: 1
+            },
+            {
+                question: "Қаныштың бала кезіндегі ерекше белгілерінің бірі:",
+                options: [
+                    "Үлкен бас, зейінділік",
+                    "Қыз мінез",
+                    "Кішкентай бой",
+                    "Сөзге жоқтық"
+                ],
+                correct: 0
+            },
+            {
+                question: "Шығармада баяндалған тарихи дерекке сәйкес, Ресейдің бодан ету саясаты қай жылдан басталған?",
+                options: [
+                    "1851",
+                    "1833",
+                    "1822",
+                    "1844"
+                ],
+                correct: 2
+            },
+            {
+                question: "Шығарманың негізгі идеясы неде?",
+                options: [
+                    "Байлық пен билік",
+                    "Ұрпақ сабақтастығы мен туған елге сүйіспеншілік",
+                    "Соғыс көрінісі",
+                    "Қиын тағдыр"
+                ],
+                correct: 1
+            },
+            {
+                question: "Қаныштың балалық шағы өткен жер қай өңір?",
+                options: [
+                    "Ақкелін болысы, Баянауыл",
+                    "Қарқаралы",
+                    "Семей",
+                    "Торғай"
+                ],
+                correct: 0
+            },
+            {
+                question: "«Кенжетай» атауы неге байланысты қойылған?",
+                options: [
+                    "Ата-анасының сүйіспеншілігіне",
+                    "Қаныштың кенже бала болғанына",
+                    "Құрмет есімге",
+                    "Кенже ауыл атауына"
+                ],
+                correct: 1
+            },
+            {
+                question: "Имантай қандай қағиданы ұстанған би болған?",
+                options: [
+                    "Әділдік пен туралық",
+                    "Тез шешім қабылдау",
+                    "Көңілшектік",
+                    "Байлық жинау"
+                ],
+                correct: 0
+            },
+            {
+                question: "Әлима қай дерттен көз жұмған?",
+                options: [
+                    "Белгісіз сырқаттан",
+                    "Өкпе ауруынан",
+                    "Қатерлі ісіктен",
+                    "Безгектен"
+                ],
+                correct: 1
+            },
+            {
+                question: "Қаныштың тасқа қызығушылығы кейін оның қандай маман болуына әсер етті?",
+                options: [
+                    "Геолог",
+                    "Құрылысшы",
+                    "Тарихшы",
+                    "Физик"
+                ],
+                correct: 0
+            },
+            {
+                question: "Имантайдың әулие түстен кейін қандай шешім қабылдаған?",
+                options: [
+                    "Құрбандық шалған",
+                    "Төсек жаңғыртқан",
+                    "Төбе би болған",
+                    "Ауылын көшірген"
+                ],
+                correct: 1
+            },
+            {
+                question: "Әлима мен Имантайдың балалары кімдер еді?",
+                options: [
+                    "Қазиза, Ғазиз, Қаныш",
+                    "Ғазиз, Әмин",
+                    "Қаныш, Әбсәләм",
+                    "Қазиза, Бөкеш, Әбсәләм"
+                ],
+                correct: 0
+            },
+            {
+                question: "Қаныштың бала кезінен аңшылыққа қызығуы кімдерден дарыған?",
+                options: [
+                    "Әжесінен",
+                    "Ұстазынан",
+                    "Ағаларынан",
+                    "Достарынан"
+                ],
+                correct: 2
+            },
+            {
+                question: "Қаныш туралы ауыл адамдары не дейді?",
+                options: [
+                    "Бала емес, үлкен мінезді",
+                    "Тентек бала",
+                    "Жақсы әнші",
+                    "Жаман мінезді"
+                ],
+                correct: 0
+            },
+            {
+                question: "Шығарманың тәрбиелік мәні неде?",
+                options: [
+                    "Тектілік пен тәрбиенің ұрпаққа дарытуы",
+                    "Мал бағу дәстүрі",
+                    "Соғысқа әзірлік",
+                    "Қара күшке сену"
+                ],
+                correct: 0
+            }
+        ];
+
+        let currentQuestion = 0;
+        let score = 0;
+        let answered = false;
+
+        const questionContainer = document.getElementById('question-container');
+        const scoreElement = document.getElementById('score');
+        const restartBtn = document.getElementById('restart-btn');
+        const progressElement = document.getElementById('progress');
+        const questionNumberElement = document.getElementById('question-number');
+
+        // Тестті бастау
+        function startTest() {
+            currentQuestion = 0;
+            score = 0;
+            showQuestion();
+            updateScore();
+            updateProgress();
+        }
+
+        // Сұрақты көрсету
+        function showQuestion() {
+            answered = false;
+            const question = questions[currentQuestion];
+            
+            let optionsHTML = '';
+            question.options.forEach((option, index) => {
+                optionsHTML += `
+                    <div class="option" data-index="${index}">
+                        ${String.fromCharCode(1040 + index)}) ${option}
+                    </div>
+                `;
+            });
+            
+            questionContainer.innerHTML = `
+                <div class="question">
+                    <div class="question-text">${question.question}</div>
+                    <div class="options">${optionsHTML}</div>
+                </div>
+            `;
+            
+            // Нұсқаларға басу функциясын қосу
+            document.querySelectorAll('.option').forEach(option => {
+                option.addEventListener('click', selectOption);
+            });
+            
+            updateQuestionNumber();
+        }
+
+        // Нұсқаны таңдау
+        function selectOption(e) {
+            if (answered) return;
+            
+            answered = true;
+            const selectedOption = e.currentTarget;
+            const selectedIndex = parseInt(selectedOption.getAttribute('data-index'));
+            const correctIndex = questions[currentQuestion].correct;
+            
+            // Барлық нұсқаларды өшіріп қою
+            document.querySelectorAll('.option').forEach(option => {
+                option.style.pointerEvents = 'none';
+            });
+            
+            // Дұрыс жауапты жасыл түске бояу
+            document.querySelectorAll('.option')[correctIndex].classList.add('correct');
+            
+            // Дұрыс жауап болса фейерверк атқылау
+            if (selectedIndex === correctIndex) {
+                score++;
+                createFireworks();
+            } else {
+                // Қате жауапты қызыл түске бояу
+                selectedOption.classList.add('incorrect');
+            }
+            
+            // Келесі сұраққа көшу
+            setTimeout(() => {
+                currentQuestion++;
+                if (currentQuestion < questions.length) {
+                    showQuestion();
+                } else {
+                    showResults();
+                }
+                updateScore();
+                updateProgress();
+            }, 2000);
+        }
+
+        // Фейерверк жасау функциясы
+        function createFireworks() {
+            const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff'];
+            const fireworkCount = 30;
+            
+            for (let i = 0; i < fireworkCount; i++) {
+                setTimeout(() => {
+                    const firework = document.createElement('div');
+                    firework.classList.add('firework');
+                    
+                    // Кездейсоқ түс
+                    const color = colors[Math.floor(Math.random() * colors.length)];
+                    firework.style.backgroundColor = color;
+                    
+                    // Кездейсоқ бастапқы позиция
+                    const startX = Math.random() * window.innerWidth;
+                    const startY = Math.random() * window.innerHeight;
+                    
+                    firework.style.left = startX + 'px';
+                    firework.style.top = startY + 'px';
+                    
+                    document.body.appendChild(firework);
+                    
+                    // Анимация
+                    const angle = Math.random() * Math.PI * 2;
+                    const velocity = 2 + Math.random() * 3;
+                    const vx = Math.cos(angle) * velocity;
+                    const vy = Math.sin(angle) * velocity;
+                    
+                    let x = startX;
+                    let y = startY;
+                    let opacity = 1;
+                    
+                    const animate = () => {
+                        x += vx;
+                        y += vy;
+                        opacity -= 0.02;
+                        
+                        firework.style.left = x + 'px';
+                        firework.style.top = y + 'px';
+                        firework.style.opacity = opacity;
+                        
+                        if (opacity > 0) {
+                            requestAnimationFrame(animate);
+                        } else {
+                            document.body.removeChild(firework);
+                        }
+                    };
+                    
+                    animate();
+                }, i * 50);
+            }
+            
+            // Конфетти жасау
+            createConfetti();
+        }
+        
+        // Конфетти жасау функциясы
+        function createConfetti() {
+            const confettiCount = 50;
+            const confettiColors = ['#f94144', '#f3722c', '#f8961e', '#f9c74f', '#90be6d', '#43aa8b', '#577590'];
+            
+            for (let i = 0; i < confettiCount; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.classList.add('confetti');
+                    
+                    // Кездейсоқ түс
+                    const color = confettiColors[Math.floor(Math.random() * confettiColors.length)];
+                    confetti.style.backgroundColor = color;
+                    
+                    // Кездейсоқ форма
+                    const shapes = ['square', 'rectangle', 'circle'];
+                    const shape = shapes[Math.floor(Math.random() * shapes.length)];
+                    
+                    if (shape === 'square') {
+                        confetti.style.width = '10px';
+                        confetti.style.height = '10px';
+                    } else if (shape === 'rectangle') {
+                        confetti.style.width = '15px';
+                        confetti.style.height = '7px';
+                    } else {
+                        confetti.style.borderRadius = '50%';
+                        confetti.style.width = '8px';
+                        confetti.style.height = '8px';
+                    }
+                    
+                    // Кездейсоқ бастапқы позиция
+                    const startX = Math.random() * window.innerWidth;
+                    
+                    confetti.style.left = startX + 'px';
+                    confetti.style.top = '-10px';
+                    
+                    document.body.appendChild(confetti);
+                    
+                    // Анимация
+                    const duration = 2 + Math.random() * 2;
+                    const endY = window.innerHeight + 10;
+                    
+                    confetti.style.transition = `top ${duration}s linear, transform ${duration}s ease-in-out`;
+                    confetti.style.transform = `rotate(${Math.random() * 720}deg)`;
+                    
+                    setTimeout(() => {
+                        confetti.style.top = endY + 'px';
+                    }, 10);
+                    
+                    // Конфеттині жою
+                    setTimeout(() => {
+                        if (confetti.parentNode) {
+                            document.body.removeChild(confetti);
+                        }
+                    }, duration * 1000);
+                }, i * 30);
+            }
+        }
+
+        // Нәтижелерді көрсету
+        function showResults() {
+            questionContainer.innerHTML = `
+                <div class="question">
+                    <div class="question-text">Тест аяқталды!</div>
+                    <div style="text-align: center; font-size: 24px; margin-top: 20px;">
+                        Сіз ${questions.length} сұрақтың ${score} дұрыс жауаптадыңыз!
+                    </div>
+                    <div style="text-align: center; font-size: 22px; margin-top: 15px;">
+                        ${score === questions.length ? 'Тамаша! Барлық жауаптар дұрыс!' : 
+                          score >= questions.length * 0.7 ? 'Жақсы нәтиже!' : 
+                          'Жауаптарды қайта қарап шығыңыз!'}
+                    </div>
+                </div>
+            `;
+            
+            // Егер барлық жауаптар дұрыс болса, үлкен фейерверк атқылау
+            if (score === questions.length) {
+                for (let i = 0; i < 5; i++) {
+                    setTimeout(() => {
+                        createFireworks();
+                    }, i * 500);
+                }
+            }
+        }
+
+        // Ұпайды жаңарту
+        function updateScore() {
+            scoreElement.textContent = `${score}/${questions.length}`;
+        }
+
+        // Прогресс жолағын жаңарту
+        function updateProgress() {
+            const progress = ((currentQuestion) / questions.length) * 100;
+            progressElement.style.width = `${progress}%`;
+        }
+
+        // Сұрақ нөмірін жаңарту
+        function updateQuestionNumber() {
+            questionNumberElement.textContent = `${currentQuestion + 1}/${questions.length} сұрақ`;
+        }
+
+        // Қайта бастау түймесі
+        restartBtn.addEventListener('click', startTest);
+
+        // Тестті бастау
+        startTest();
+    </script>
+</body>
+</html>
